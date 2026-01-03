@@ -1,0 +1,73 @@
+# Compiler output
+/out/
+/cache/
+
+# Dependencies
+/lib/
+node_modules/
+
+# Environment files
+.env
+.env.local
+.env.*.local
+*.env
+
+# Broadcast files (deployment artifacts)
+/broadcast/
+
+# Coverage
+lcov.info
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# IDE
+.idea/
+.vscode/
+*.swp
+*.swo
+
+# ==========================================
+# SENSITIVE FILES - DO NOT PUSH
+# ==========================================
+
+# All scripts (JS testing/interaction scripts)
+/scripts/
+scripts/
+
+# Wallets and private keys
+/wallets/
+wallets/
+**/wallets/
+*.json
+!package.json
+!package-lock.json
+!tsconfig.json
+!frontend/package.json
+!frontend/package-lock.json
+
+# Test files
+/test/
+test/
+*.t.sol
+
+# Foundry deployment scripts
+/script/
+script/
+
+# Flattened/Remix deployment files
+*_Remix.sol
+*_Flattened.sol
+MiniDex_Remix.sol
+
+# Temporary files
+*.tmp
+*.temp
+*_temp.*
+keys_temp.json
+
+# Build outputs
+/dist/
+/build/
+frontend/dist/

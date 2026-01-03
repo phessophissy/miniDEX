@@ -1,0 +1,17 @@
+{
+  "name": "minidex",
+  "version": "1.0.0",
+  "description": "A minimal, gas-efficient decentralized exchange for stablecoin swaps on Base Chain Mainnet.",
+  "main": "index.js",
+  "scripts": {
+    "frontend:dev": "cd frontend && npm run dev",
+    "frontend:build": "cd frontend && npm run build"
+  },
+  "keywords": ["dex", "stablecoin", "base", "ethereum", "amm"],
+  "author": "",
+  "license": "MIT",
+  "type": "commonjs",
+  "dependencies": {
+    "ethers": "^6.16.0"
+  }
+}

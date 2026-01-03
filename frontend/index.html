@@ -1,0 +1,532 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MiniDex - Stablecoin Swap</title>
+    <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>💱</text></svg>">
+    <style>
+        :root {
+            --bg-primary: #0a0a0f;
+            --bg-secondary: #12121a;
+            --bg-tertiary: #1a1a25;
+            --accent: #3b82f6;
+            --accent-hover: #2563eb;
+            --text-primary: #ffffff;
+            --text-secondary: #9ca3af;
+            --border: #2d2d3a;
+            --success: #10b981;
+            --error: #ef4444;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: var(--bg-primary);
+            color: var(--text-primary);
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 480px;
+            width: 100%;
+        }
+
+        header {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+
+        header h1 {
+            font-size: 2rem;
+            font-weight: 700;
+            margin-bottom: 8px;
+        }
+
+        header p {
+            color: var(--text-secondary);
+            font-size: 0.9rem;
+        }
+
+        .network-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            background: var(--bg-tertiary);
+            padding: 6px 12px;
+            border-radius: 20px;
+            font-size: 0.8rem;
+            margin-top: 10px;
+        }
+
+        .network-badge .dot {
+            width: 8px;
+            height: 8px;
+            background: var(--success);
+            border-radius: 50%;
+        }
+
+        .card {
+            background: var(--bg-secondary);
+            border: 1px solid var(--border);
+            border-radius: 16px;
+            padding: 24px;
+            margin-bottom: 20px;
+        }
+
+        .tabs {
+            display: flex;
+            gap: 8px;
+            margin-bottom: 20px;
+        }
+
+        .tab {
+            flex: 1;
+            padding: 12px;
+            background: var(--bg-tertiary);
+            border: none;
+            border-radius: 10px;
+            color: var(--text-secondary);
+            font-size: 0.95rem;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .tab.active {
+            background: var(--accent);
+            color: white;
+        }
+
+        .tab:hover:not(.active) {
+            background: var(--border);
+        }
+
+        .swap-container {
+            position: relative;
+        }
+
+        .token-input {
+            background: var(--bg-tertiary);
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            padding: 16px;
+            margin-bottom: 8px;
+        }
+
+        .token-input label {
+            display: block;
+            font-size: 0.85rem;
+            color: var(--text-secondary);
+            margin-bottom: 8px;
+        }
+
+        .input-row {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .input-row input {
+            flex: 1;
+            background: transparent;
+            border: none;
+            font-size: 1.5rem;
+            font-weight: 600;
+            color: var(--text-primary);
+            outline: none;
+        }
+
+        .input-row input::placeholder {
+            color: var(--text-secondary);
+        }
+
+        .token-select {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            background: var(--bg-secondary);
+            padding: 8px 12px;
+            border-radius: 20px;
+            cursor: pointer;
+            transition: background 0.2s;
+        }
+
+        .token-select:hover {
+            background: var(--border);
+        }
+
+        .token-select img {
+            width: 24px;
+            height: 24px;
+            border-radius: 50%;
+        }
+
+        .token-select span {
+            font-weight: 600;
+        }
+
+        .swap-arrow {
+            position: absolute;
+            left: 50%;
+            top: 50%;
+            transform: translate(-50%, -50%);
+            width: 40px;
+            height: 40px;
+            background: var(--bg-secondary);
+            border: 4px solid var(--bg-primary);
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            z-index: 1;
+            transition: transform 0.2s;
+        }
+
+        .swap-arrow:hover {
+            transform: translate(-50%, -50%) rotate(180deg);
+        }
+
+        .balance-row {
+            display: flex;
+            justify-content: space-between;
+            margin-top: 8px;
+            font-size: 0.85rem;
+            color: var(--text-secondary);
+        }
+
+        .balance-row .max {
+            color: var(--accent);
+            cursor: pointer;
+        }
+
+        .info-row {
+            display: flex;
+            justify-content: space-between;
+            padding: 12px 0;
+            border-bottom: 1px solid var(--border);
+            font-size: 0.9rem;
+        }
+
+        .info-row:last-child {
+            border-bottom: none;
+        }
+
+        .info-row .label {
+            color: var(--text-secondary);
+        }
+
+        .action-btn {
+            width: 100%;
+            padding: 16px;
+            background: var(--accent);
+            border: none;
+            border-radius: 12px;
+            color: white;
+            font-size: 1.1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: background 0.2s;
+            margin-top: 16px;
+        }
+
+        .action-btn:hover:not(:disabled) {
+            background: var(--accent-hover);
+        }
+
+        .action-btn:disabled {
+            background: var(--bg-tertiary);
+            color: var(--text-secondary);
+            cursor: not-allowed;
+        }
+
+        .connect-btn {
+            background: linear-gradient(135deg, #3b82f6, #8b5cf6);
+        }
+
+        .connect-btn:hover {
+            background: linear-gradient(135deg, #2563eb, #7c3aed);
+        }
+
+        .wallet-info {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            background: var(--bg-tertiary);
+            padding: 12px 16px;
+            border-radius: 12px;
+            margin-bottom: 20px;
+        }
+
+        .wallet-address {
+            font-family: monospace;
+            font-size: 0.9rem;
+        }
+
+        .disconnect-btn {
+            background: transparent;
+            border: 1px solid var(--border);
+            color: var(--text-secondary);
+            padding: 6px 12px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 0.85rem;
+        }
+
+        .disconnect-btn:hover {
+            border-color: var(--error);
+            color: var(--error);
+        }
+
+        /* Liquidity Tab */
+        .lp-inputs {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+
+        .pool-stats {
+            margin-top: 16px;
+        }
+
+        /* Status Messages */
+        .status {
+            padding: 12px 16px;
+            border-radius: 10px;
+            margin-top: 12px;
+            font-size: 0.9rem;
+        }
+
+        .status.success {
+            background: rgba(16, 185, 129, 0.1);
+            border: 1px solid var(--success);
+            color: var(--success);
+        }
+
+        .status.error {
+            background: rgba(239, 68, 68, 0.1);
+            border: 1px solid var(--error);
+            color: var(--error);
+        }
+
+        .status.pending {
+            background: rgba(59, 130, 246, 0.1);
+            border: 1px solid var(--accent);
+            color: var(--accent);
+        }
+
+        /* Footer */
+        footer {
+            margin-top: auto;
+            padding-top: 40px;
+            text-align: center;
+            color: var(--text-secondary);
+            font-size: 0.85rem;
+        }
+
+        footer a {
+            color: var(--accent);
+            text-decoration: none;
+        }
+
+        /* Hidden class */
+        .hidden {
+            display: none !important;
+        }
+
+        /* Spinner */
+        .spinner {
+            display: inline-block;
+            width: 16px;
+            height: 16px;
+            border: 2px solid transparent;
+            border-top-color: currentColor;
+            border-radius: 50%;
+            animation: spin 0.8s linear infinite;
+            margin-right: 8px;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>💱 MiniDex</h1>
+            <p>Stablecoin swaps with near-zero slippage</p>
+            <div class="network-badge">
+                <span class="dot"></span>
+                <span>Base Mainnet</span>
+            </div>
+        </header>
+
+        <!-- Wallet Connection -->
+        <div id="connect-section" class="card">
+            <button class="action-btn connect-btn" id="connect-btn">
+                Connect Wallet
+            </button>
+        </div>
+
+        <!-- Main App (hidden until connected) -->
+        <div id="app-section" class="hidden">
+            <div class="wallet-info">
+                <span class="wallet-address" id="wallet-address">0x...</span>
+                <button class="disconnect-btn" id="disconnect-btn">Disconnect</button>
+            </div>
+
+            <div class="card">
+                <div class="tabs">
+                    <button class="tab active" data-tab="swap">Swap</button>
+                    <button class="tab" data-tab="liquidity">Liquidity</button>
+                </div>
+
+                <!-- Swap Tab -->
+                <div id="swap-tab">
+                    <div class="swap-container">
+                        <div class="token-input">
+                            <label>You Pay</label>
+                            <div class="input-row">
+                                <input type="number" id="input-amount" placeholder="0.00" step="0.01">
+                                <div class="token-select" id="input-token">
+                                    <img src="https://assets.coingecko.com/coins/images/6319/small/USD_Coin_icon.png" alt="USDC">
+                                    <span>USDC</span>
+                                </div>
+                            </div>
+                            <div class="balance-row">
+                                <span>Balance: <span id="input-balance">0.00</span></span>
+                                <span class="max" id="max-btn">MAX</span>
+                            </div>
+                        </div>
+
+                        <div class="swap-arrow" id="swap-direction">
+                            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <path d="M7 16V4M7 4L3 8M7 4L11 8M17 8V20M17 20L21 16M17 20L13 16"/>
+                            </svg>
+                        </div>
+
+                        <div class="token-input" style="margin-top: 8px;">
+                            <label>You Receive</label>
+                            <div class="input-row">
+                                <input type="number" id="output-amount" placeholder="0.00" readonly>
+                                <div class="token-select" id="output-token">
+                                    <img src="https://assets.coingecko.com/coins/images/325/small/Tether.png" alt="USDT">
+                                    <span>USDT</span>
+                                </div>
+                            </div>
+                            <div class="balance-row">
+                                <span>Balance: <span id="output-balance">0.00</span></span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="pool-stats">
+                        <div class="info-row">
+                            <span class="label">Exchange Rate</span>
+                            <span id="exchange-rate">1 USDC ≈ 1 USDT</span>
+                        </div>
+                        <div class="info-row">
+                            <span class="label">Platform Fee</span>
+                            <span>0.0000015 ETH</span>
+                        </div>
+                        <div class="info-row">
+                            <span class="label">Slippage Tolerance</span>
+                            <span>1%</span>
+                        </div>
+                    </div>
+
+                    <button class="action-btn" id="swap-btn" disabled>Enter Amount</button>
+                    <div id="swap-status"></div>
+                </div>
+
+                <!-- Liquidity Tab -->
+                <div id="liquidity-tab" class="hidden">
+                    <div class="tabs" style="margin-bottom: 16px;">
+                        <button class="tab active" data-lp-tab="add">Add</button>
+                        <button class="tab" data-lp-tab="remove">Remove</button>
+                    </div>
+
+                    <!-- Add Liquidity -->
+                    <div id="add-lp-section">
+                        <div class="lp-inputs">
+                            <div class="token-input">
+                                <label>USDC Amount</label>
+                                <div class="input-row">
+                                    <input type="number" id="lp-usdc-amount" placeholder="0.00" step="0.01">
+                                    <div class="token-select">
+                                        <img src="https://assets.coingecko.com/coins/images/6319/small/USD_Coin_icon.png" alt="USDC">
+                                        <span>USDC</span>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="token-input">
+                                <label>USDT Amount</label>
+                                <div class="input-row">
+                                    <input type="number" id="lp-usdt-amount" placeholder="0.00" step="0.01">
+                                    <div class="token-select">
+                                        <img src="https://assets.coingecko.com/coins/images/325/small/Tether.png" alt="USDT">
+                                        <span>USDT</span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <button class="action-btn" id="add-lp-btn" disabled>Add Liquidity</button>
+                    </div>
+
+                    <!-- Remove Liquidity -->
+                    <div id="remove-lp-section" class="hidden">
+                        <div class="token-input">
+                            <label>LP Tokens to Burn</label>
+                            <div class="input-row">
+                                <input type="number" id="lp-tokens-amount" placeholder="0.00" step="0.000001">
+                                <div class="token-select">
+                                    <span>mDEX-LP</span>
+                                </div>
+                            </div>
+                            <div class="balance-row">
+                                <span>Balance: <span id="lp-balance">0.00</span></span>
+                                <span class="max" id="max-lp-btn">MAX</span>
+                            </div>
+                        </div>
+                        <button class="action-btn" id="remove-lp-btn" disabled>Remove Liquidity</button>
+                    </div>
+
+                    <div class="pool-stats" style="margin-top: 20px;">
+                        <div class="info-row">
+                            <span class="label">Pool USDC</span>
+                            <span id="pool-usdc">0.00</span>
+                        </div>
+                        <div class="info-row">
+                            <span class="label">Pool USDT</span>
+                            <span id="pool-usdt">0.00</span>
+                        </div>
+                        <div class="info-row">
+                            <span class="label">Your LP Tokens</span>
+                            <span id="your-lp">0.00</span>
+                        </div>
+                    </div>
+                    <div id="lp-status"></div>
+                </div>
+            </div>
+        </div>
+
+        <footer>
+            <p>MiniDex on <a href="https://basescan.org" target="_blank">Base Chain</a></p>
+            <p style="margin-top: 8px;">Swap Fee: 0.0000015 ETH per transaction</p>
+        </footer>
+    </div>
+
+    <script type="module" src="/src/app.js"></script>
+</body>
+</html>
