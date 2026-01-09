@@ -60,6 +60,18 @@ contract StablePool is IStablePool {
     /// @notice Current USDT reserve (in native decimals)
     uint256 public reserveUSDT;
 
+    /// @notice Total swap volume in USDC
+    uint256 public totalUSDCVolume;
+
+    /// @notice Total swap volume in USDT
+    uint256 public totalUSDTVolume;
+
+    /// @notice Total number of swaps executed
+    uint256 public totalSwapsCount;
+
+    /// @notice Total number of LP providers
+    uint256 public totalLPs;
+
     /*//////////////////////////////////////////////////////////////
                               CONSTRUCTOR
     //////////////////////////////////////////////////////////////*/
@@ -217,6 +229,14 @@ contract StablePool is IStablePool {
         // Send fee to recipient
         (bool success, ) = feeRecipient.call{value: SWAP_FEE}("");
         require(success, "StablePool: fee transfer failed");
+
+        // Update analytics
+        totalSwapsCount++;
+        if (isUsdcIn) {
+            totalUSDCVolume += amountIn;
+        } else {
+            totalUSDTVolume += amountIn;
+        }
 
         emit Swap(
             msg.sender,
@@ -603,5 +623,35 @@ contract StablePool is IStablePool {
     /// @notice Reject direct ETH transfers (fees must go through swap)
     receive() external payable {
         revert("StablePool: use swap()");
+    }
+
+    /// @notice Get comprehensive pool analytics
+    /// @return reserveUSDC_ Current USDC reserve
+    /// @return reserveUSDT_ Current USDT reserve
+    /// @return totalUSDCVolume_ Total USDC volume swapped
+    /// @return totalUSDTVolume_ Total USDT volume swapped
+    /// @return totalSwaps_ Total number of swaps
+    /// @return totalLPs_ Total number of LP providers
+    /// @return tvl Total value locked in USD (assuming 1:1 peg)
+    function getPoolAnalytics()
+        external
+        view
+        returns (
+            uint256 reserveUSDC_,
+            uint256 reserveUSDT_,
+            uint256 totalUSDCVolume_,
+            uint256 totalUSDTVolume_,
+            uint256 totalSwaps_,
+            uint256 totalLPs_,
+            uint256 tvl
+        )
+    {
+        reserveUSDC_ = reserveUSDC;
+        reserveUSDT_ = reserveUSDT;
+        totalUSDCVolume_ = totalUSDCVolume;
+        totalUSDTVolume_ = totalUSDTVolume;
+        totalSwaps_ = totalSwapsCount;
+        totalLPs_ = totalLPs;
+        tvl = reserveUSDC + reserveUSDT; // Assuming 1:1 peg
     }
 }
