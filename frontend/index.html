@@ -1039,3 +1039,21 @@ input[type="number"] {
     }
 }
 </style>
+<style>
+footer a {
+    position: relative;
+}
+footer a::after {
+    content: '';
+    position: absolute;
+    bottom: -2px;
+    left: 0;
+    width: 0;
+    height: 1px;
+    background: var(--accent);
+    transition: width 0.2s;
+}
+footer a:hover::after {
+    width: 100%;
+}
+</style>
