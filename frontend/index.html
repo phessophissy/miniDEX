@@ -5,7 +5,27 @@
     <meta name="theme-color" content="#0a0a0f">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>MiniDex - Stablecoin Swap | Base Chain</title>
+    <script src="https://cdn.jsdelivr.net/npm/@farcaster/frame-sdk/dist/index.min.js"></script>
+    <script>
+        // Initialize Farcaster SDK immediately
+        window.addEventListener('DOMContentLoaded', async () => {
+            if (typeof frame !== 'undefined' && frame.sdk) {
+                await frame.sdk.actions.ready();
+                console.log('Farcaster Mini App ready');
+            }
+        });
+    </script>
     <meta name="description" content="Swap USDC and USDT with near-zero slippage on Base Chain">
+    
+    <!-- Farcaster Frame / Mini App -->
+    <meta property="fc:frame" content="next">
+    <meta property="fc:frame:image" content="https://theminidex.vercel.app/manifest/image.png">
+    <meta property="fc:frame:image:aspect_ratio" content="1.91:1">
+    
+    <!-- Open Graph -->
+    <meta property="og:title" content="MiniDex - Stablecoin Swap">
+    <meta property="og:description" content="Swap USDC ↔ USDT with near-zero slippage on Base Chain">
+    <meta property="og:image" content="https://theminidex.vercel.app/manifest/image.png">
     <meta name="keywords" content="DEX, stablecoin, swap, USDC, USDT, Base, crypto">
     <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>💱</text></svg>">
     <style>
@@ -372,6 +392,8 @@
             to { transform: rotate(360deg); }
         }
     </style>
+    <meta name="twitter:card" content="summary_large_image">
+    <meta name="twitter:title" content="MiniDex - Stablecoin Swap">
 </head>
 <body>
     <div class="container">
@@ -540,17 +562,9 @@
     </div>
 
     <script type="module" src="/src/app.js"></script>
-<footer style="margin-top: auto; padding: 20px;
+    <footer style="margin-top: auto; padding: 20px;
             padding-bottom: env(safe-area-inset-bottom, 20px); text-align: center; color: var(--text-secondary); font-size: 0.85rem;">
         <p>MiniDex © 2026 | Built on Base Chain</p>
     </footer>
 </body>
 </html>
-<!-- Loading Animation Styles -->
-<style>
-    @keyframes pulse {
-        0%, 100% { opacity: 1; }
-        50% { opacity: 0.5; }
-    }
-    .loading { animation: pulse 1.5s ease-in-out infinite; }
-</style>

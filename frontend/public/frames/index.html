@@ -1,0 +1,90 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>MiniDex - Swap Stablecoins on Base</title>
+    
+    <!-- Farcaster Frame Meta Tags -->
+    <meta property="fc:frame" content="vNext">
+    <meta property="fc:frame:image" content="https://theminidex.vercel.app/frames/swap-preview.png">
+    <meta property="fc:frame:image:aspect_ratio" content="1.91:1">
+    
+    <!-- Frame Buttons -->
+    <meta property="fc:frame:button:1" content="🔄 Open MiniDex">
+    <meta property="fc:frame:button:1:action" content="link">
+    <meta property="fc:frame:button:1:target" content="https://theminidex.vercel.app">
+    
+    <meta property="fc:frame:button:2" content="📊 View on BaseScan">
+    <meta property="fc:frame:button:2:action" content="link">
+    <meta property="fc:frame:button:2:target" content="https://basescan.org/address/0x47f4b9bDbaa5e1fB2fC4cCac446610456B406BCC">
+    
+    <meta property="fc:frame:button:3" content="💻 GitHub">
+    <meta property="fc:frame:button:3:action" content="link">
+    <meta property="fc:frame:button:3:target" content="https://github.com/phessophissy/miniDEX">
+    
+    <!-- Open Graph -->
+    <meta property="og:title" content="MiniDex - Stablecoin Swap">
+    <meta property="og:description" content="Swap USDC ↔ USDT with near-zero slippage on Base Chain. Fixed 0.0000015 ETH fee.">
+    <meta property="og:image" content="https://theminidex.vercel.app/frames/swap-preview.png">
+    <meta property="og:url" content="https://theminidex.vercel.app/frames">
+    
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: linear-gradient(135deg, #0a0a0f, #12121a);
+            color: #fff;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            margin: 0;
+            padding: 20px;
+        }
+        h1 {
+            background: linear-gradient(135deg, #3b82f6, #8b5cf6);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            font-size: 3rem;
+            margin-bottom: 10px;
+        }
+        p { color: #9ca3af; font-size: 1.2rem; }
+        .cta {
+            background: #3b82f6;
+            color: white;
+            padding: 15px 30px;
+            border-radius: 12px;
+            text-decoration: none;
+            font-weight: bold;
+            margin-top: 20px;
+            transition: all 0.3s;
+        }
+        .cta:hover { background: #2563eb; transform: scale(1.05); }
+        .info { margin-top: 30px; text-align: center; }
+        .badge {
+            background: #1a1a25;
+            padding: 8px 16px;
+            border-radius: 20px;
+            margin: 5px;
+            display: inline-block;
+        }
+    </style>
+</head>
+<body>
+    <h1>💱 MiniDex</h1>
+    <p>Stablecoin Swap on Base Chain</p>
+    
+    <a href="https://theminidex.vercel.app" class="cta">Launch App</a>
+    
+    <div class="info">
+        <span class="badge">✓ USDC ↔ USDT</span>
+        <span class="badge">✓ Near-Zero Slippage</span>
+        <span class="badge">✓ 0.0000015 ETH Fee</span>
+    </div>
+    
+    <p style="margin-top: 40px; font-size: 0.9rem;">
+        Share this page on Warpcast to see the interactive Frame!
+    </p>
+</body>
+</html>
