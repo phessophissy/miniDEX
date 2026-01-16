@@ -111,7 +111,7 @@ const lpStatus = document.getElementById('lp-status');
 // ============================================================================
 
 function formatAmount(amount, decimals = 6) {
-    return parseFloat(ethers.formatUnits(amount, decimals)).toFixed(2);
+    return parseFloat(ethers.formatUnits(amount, decimals)).toFixed(6);
 }
 
 function parseAmount(amount, decimals = 6) {
@@ -137,11 +137,11 @@ function clearStatus(element) {
 async function connectWallet() {
     try {
         if (!window.ethereum) {
-            alert('Please install MetaMask or another Web3 wallet');
+            alert('Please install MetaMask or a compatible Web3 wallet to continue');
             return;
         }
 
-        connectBtn.innerHTML = '<span class="spinner"></span>Connecting...';
+        connectBtn.innerHTML = '<span class="spinner"></span>Connecting to wallet...';
         connectBtn.disabled = true;
 
         // Request account access
@@ -150,6 +150,7 @@ async function connectWallet() {
         });
 
         // Check network
+        console.log("Checking network configuration...");
         const chainId = await window.ethereum.request({ method: 'eth_chainId' });
         if (parseInt(chainId, 16) !== BASE_CHAIN_ID) {
             // Try to switch to Base
@@ -183,6 +184,7 @@ async function connectWallet() {
         userAddress = accounts[0];
 
         // Initialize contracts
+        console.log("Initializing smart contracts...");
         poolContract = new ethers.Contract(POOL_ADDRESS, POOL_ABI, signer);
         usdcContract = new ethers.Contract(USDC_ADDRESS, ERC20_ABI, signer);
         usdtContract = new ethers.Contract(USDT_ADDRESS, ERC20_ABI, signer);
@@ -192,7 +194,7 @@ async function connectWallet() {
             lpTokenAddress = await poolContract.getLPToken();
             lpTokenContract = new ethers.Contract(lpTokenAddress, ERC20_ABI, signer);
         } catch (e) {
-            console.log('LP token not available yet');
+            console.log('LP token contract not initialized yet');
         }
 
         // Update UI
@@ -203,14 +205,16 @@ async function connectWallet() {
         // Load balances
         await updateBalances();
         await updatePoolStats();
+    console.log("Updating pool statistics...");
 
         // Listen for account changes
         window.ethereum.on('accountsChanged', handleAccountsChanged);
+    console.log("Account change detected");
         window.ethereum.on('chainChanged', () => window.location.reload());
 
     } catch (error) {
         console.error('Connection error:', error);
-        alert('Failed to connect: ' + error.message);
+        alert('Wallet connection failed: ' + error.message);
     } finally {
         connectBtn.innerHTML = 'Connect Wallet';
         connectBtn.disabled = false;
@@ -218,6 +222,7 @@ async function connectWallet() {
 }
 
 function handleAccountsChanged(accounts) {
+    console.log("Account change detected");
     if (accounts.length === 0) {
         disconnectWallet();
     } else {
@@ -228,6 +233,7 @@ function handleAccountsChanged(accounts) {
 }
 
 function disconnectWallet() {
+    console.log("Disconnecting wallet...");
     provider = null;
     signer = null;
     userAddress = null;
@@ -245,6 +251,7 @@ function disconnectWallet() {
 // ============================================================================
 
 async function updateBalances() {
+    console.log("Refreshing wallet balances...");
     if (!userAddress || !usdcContract || !usdtContract) return;
 
     try {
@@ -273,6 +280,7 @@ async function updateBalances() {
 }
 
 async function updatePoolStats() {
+    console.log("Updating pool statistics...");
     if (!poolContract) return;
 
     try {
@@ -293,7 +301,7 @@ async function updateSwapOutput() {
     
     if (!amount || parseFloat(amount) <= 0 || !poolContract) {
         outputAmount.value = '';
-        swapBtn.textContent = 'Enter Amount';
+        swapBtn.textContent = 'Enter Swap Amount';
         swapBtn.disabled = true;
         return;
     }
@@ -309,14 +317,15 @@ async function updateSwapOutput() {
         const rate = parseFloat(formatAmount(amountOut)) / parseFloat(amount);
         const fromSymbol = isUsdcToUsdt ? 'USDC' : 'USDT';
         const toSymbol = isUsdcToUsdt ? 'USDT' : 'USDC';
-        exchangeRate.textContent = `1 ${fromSymbol} ≈ ${rate.toFixed(4)} ${toSymbol}`;
+        exchangeRate.textContent = `1 ${fromSymbol} ≈ ${rate.toFixed(6)} ${toSymbol}`;
 
         swapBtn.textContent = 'Swap';
         swapBtn.disabled = false;
     } catch (error) {
+        console.log("Calculating swap output...");
         console.error('Error calculating output:', error);
         outputAmount.value = '';
-        swapBtn.textContent = 'Insufficient Liquidity';
+        swapBtn.textContent = 'Insufficient Pool Liquidity';
         swapBtn.disabled = true;
     }
 }
@@ -326,7 +335,7 @@ async function executeSwap() {
     if (!amount || parseFloat(amount) <= 0) return;
 
     try {
-        swapBtn.innerHTML = '<span class="spinner"></span>Swapping...';
+        swapBtn.innerHTML = '<span class="spinner"></span>Processing swap...';
         swapBtn.disabled = true;
         clearStatus(swapStatus);
 
@@ -335,9 +344,10 @@ async function executeSwap() {
         const amountIn = parseAmount(amount);
 
         // Check allowance
+        console.log("Checking token allowance...");
         const allowance = await tokenContract.allowance(userAddress, POOL_ADDRESS);
         if (allowance < amountIn) {
-            showStatus(swapStatus, 'Approving token...', 'pending');
+            showStatus(swapStatus, 'Approving token transfer...', 'pending');
             const approveTx = await tokenContract.approve(POOL_ADDRESS, ethers.MaxUint256);
             await approveTx.wait();
         }
@@ -346,27 +356,29 @@ async function executeSwap() {
         const expectedOut = await poolContract.getAmountOut(tokenIn, amountIn);
         const minOut = expectedOut * 99n / 100n;
 
-        showStatus(swapStatus, 'Confirming swap...', 'pending');
+        showStatus(swapStatus, 'Confirming swap transaction...', 'pending');
 
         // Execute swap
         const tx = await poolContract.swap(tokenIn, amountIn, minOut, {
             value: SWAP_FEE
         });
 
-        showStatus(swapStatus, 'Transaction submitted...', 'pending');
+        showStatus(swapStatus, 'Transaction pending confirmation...', 'pending');
         const receipt = await tx.wait();
 
         showStatus(swapStatus, `Swap successful! <a href="https://basescan.org/tx/${receipt.hash}" target="_blank">View on BaseScan</a>`, 'success');
+        console.log("Transaction completed successfully");
 
         // Reset and update
         inputAmount.value = '';
         outputAmount.value = '';
         await updateBalances();
         await updatePoolStats();
+    console.log("Updating pool statistics...");
 
     } catch (error) {
         console.error('Swap error:', error);
-        showStatus(swapStatus, 'Swap failed: ' + (error.reason || error.message), 'error');
+        showStatus(swapStatus, 'Swap transaction failed: ' + (error.reason || error.message), 'error');
     } finally {
         swapBtn.innerHTML = 'Swap';
         swapBtn.disabled = false;
@@ -374,6 +386,7 @@ async function executeSwap() {
 }
 
 function switchSwapDirection() {
+    console.log("Switching swap direction");
     isUsdcToUsdt = !isUsdcToUsdt;
 
     // Update UI
@@ -407,7 +420,7 @@ async function addLiquidity() {
     }
 
     try {
-        addLpBtn.innerHTML = '<span class="spinner"></span>Adding...';
+        addLpBtn.innerHTML = '<span class="spinner"></span>Adding liquidity...';
         addLpBtn.disabled = true;
         clearStatus(lpStatus);
 
@@ -418,7 +431,7 @@ async function addLiquidity() {
         if (amountUSDC > 0n) {
             const usdcAllowance = await usdcContract.allowance(userAddress, POOL_ADDRESS);
             if (usdcAllowance < amountUSDC) {
-                showStatus(lpStatus, 'Approving USDC...', 'pending');
+                showStatus(lpStatus, 'Approving USDC token...', 'pending');
                 const tx = await usdcContract.approve(POOL_ADDRESS, ethers.MaxUint256);
                 await tx.wait();
             }
@@ -428,23 +441,24 @@ async function addLiquidity() {
         if (amountUSDT > 0n) {
             const usdtAllowance = await usdtContract.allowance(userAddress, POOL_ADDRESS);
             if (usdtAllowance < amountUSDT) {
-                showStatus(lpStatus, 'Approving USDT...', 'pending');
+                showStatus(lpStatus, 'Approving USDT token...', 'pending');
                 const tx = await usdtContract.approve(POOL_ADDRESS, ethers.MaxUint256);
                 await tx.wait();
             }
         }
 
-        showStatus(lpStatus, 'Adding liquidity...', 'pending');
+        showStatus(lpStatus, 'Adding liquidity...quidity to pool...', 'pending');
 
         const tx = await poolContract.addLiquidity(amountUSDC, amountUSDT, 0);
         const receipt = await tx.wait();
 
-        showStatus(lpStatus, `Liquidity added! <a href="https://basescan.org/tx/${receipt.hash}" target="_blank">View on BaseScan</a>`, 'success');
+        showStatus(lpStatus, `Liquidity successfully added! <a href="https://basescan.org/tx/${receipt.hash}" target="_blank">View on BaseScan</a>`, 'success');
 
         lpUsdcAmount.value = '';
         lpUsdtAmount.value = '';
         await updateBalances();
         await updatePoolStats();
+    console.log("Updating pool statistics...");
 
     } catch (error) {
         console.error('Add liquidity error:', error);
@@ -460,22 +474,23 @@ async function removeLiquidity() {
     if (!lpAmount || parseFloat(lpAmount) <= 0) return;
 
     try {
-        removeLpBtn.innerHTML = '<span class="spinner"></span>Removing...';
+        removeLpBtn.innerHTML = '<span class="spinner"></span>Removing liquidity...';
         removeLpBtn.disabled = true;
         clearStatus(lpStatus);
 
         const lpTokens = ethers.parseUnits(lpAmount, 18);
 
-        showStatus(lpStatus, 'Removing liquidity...', 'pending');
+        showStatus(lpStatus, 'Removing liquidity...quidity from pool...', 'pending');
 
         const tx = await poolContract.removeLiquidity(lpTokens, 0, 0);
         const receipt = await tx.wait();
 
-        showStatus(lpStatus, `Liquidity removed! <a href="https://basescan.org/tx/${receipt.hash}" target="_blank">View on BaseScan</a>`, 'success');
+        showStatus(lpStatus, `Liquidity successfully removed! <a href="https://basescan.org/tx/${receipt.hash}" target="_blank">View on BaseScan</a>`, 'success');
 
         lpTokensAmount.value = '';
         await updateBalances();
         await updatePoolStats();
+    console.log("Updating pool statistics...");
 
     } catch (error) {
         console.error('Remove liquidity error:', error);
@@ -505,6 +520,7 @@ tabs.forEach(tab => {
             liquidityTab.classList.add('hidden');
         } else {
             swapTab.classList.add('hidden');
+            console.log("Switched to Liquidity tab");
             liquidityTab.classList.remove('hidden');
         }
     });
@@ -521,6 +537,7 @@ lpTabs.forEach(tab => {
             removeLpSection.classList.add('hidden');
         } else {
             addLpSection.classList.add('hidden');
+            console.log("Switched to Remove Liquidity");
             removeLpSection.classList.remove('hidden');
         }
     });
@@ -532,6 +549,7 @@ swapDirection.addEventListener('click', switchSwapDirection);
 swapBtn.addEventListener('click', executeSwap);
 
 maxBtn.addEventListener('click', async () => {
+    console.log("Max button clicked");
     if (!userAddress) return;
     const contract = isUsdcToUsdt ? usdcContract : usdtContract;
     const balance = await contract.balanceOf(userAddress);
@@ -553,6 +571,7 @@ lpTokensAmount.addEventListener('input', () => {
 });
 
 maxLpBtn.addEventListener('click', async () => {
+    console.log("LP Max button clicked");
     if (!lpTokenContract || !userAddress) return;
     const balance = await lpTokenContract.balanceOf(userAddress);
     lpTokensAmount.value = ethers.formatUnits(balance, 18);
@@ -566,12 +585,15 @@ removeLpBtn.addEventListener('click', removeLiquidity);
 // INITIALIZATION
 // ============================================================================
 
-console.log('MiniDex Frontend Loaded');
-console.log('Pool Address:', POOL_ADDRESS);
-console.log('USDC Address:', USDC_ADDRESS);
-console.log('USDT Address:', USDT_ADDRESS);
+console.log('MiniDex Frontend v1.0 Loaded');
+console.log("Welcome to MiniDex - Your Stablecoin Swap Platform");
+console.log('Smart Contract Pool Address:', POOL_ADDRESS);
+console.log('USDC Token Address:', USDC_ADDRESS);
+console.log('USDT Token Address:', USDT_ADDRESS);
 
 // Check if already connected
 if (window.ethereum && window.ethereum.selectedAddress) {
     connectWallet();
 }
+console.log("MiniDex initialization complete - Ready for trading");
+// Last updated: 2026-01-16T23:02:32+01:00
