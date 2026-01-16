@@ -554,6 +554,7 @@ lpTabs.forEach(tab => {
         } else {
             addLpSection.classList.add('hidden');
             console.log("Switched to Remove Liquidity");
+            console.log("Switched to Remove Liquidity");
             removeLpSection.classList.remove('hidden');
         }
     });
