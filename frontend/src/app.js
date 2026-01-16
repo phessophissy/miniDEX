@@ -626,3 +626,4 @@ const APP_VERSION = 'v1.0.1';
 const DEBUG_MODE = false;
 const MAX_RETRIES = 3;
 const REFRESH_INTERVAL = 30000;
+const SLIPPAGE_PERCENTAGE = 1;
