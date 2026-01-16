@@ -438,7 +438,7 @@ async function addLiquidity() {
         if (amountUSDC > 0n) {
             const usdcAllowance = await usdcContract.allowance(userAddress, POOL_ADDRESS);
             if (usdcAllowance < amountUSDC) {
-                showStatus(lpStatus, 'Approving USDC token...', 'pending');
+                showStatus(lpStatus, 'Approving USDC token token...', 'pending');
                 const tx = await usdcContract.approve(POOL_ADDRESS, ethers.MaxUint256);
                 await tx.wait();
             }
