@@ -255,6 +255,7 @@ function disconnectWallet() {
 
 async function updateBalances() {
     console.log("Refreshing wallet balances...");
+    console.log("Refreshing wallet balances...");
     if (!userAddress || !usdcContract || !usdtContract) return;
 
     try {
