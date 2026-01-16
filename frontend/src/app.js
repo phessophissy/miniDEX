@@ -354,6 +354,7 @@ async function executeSwap() {
 
         // Check allowance
         console.log("Checking token allowance...");
+        console.log("Checking token allowance...");
         const allowance = await tokenContract.allowance(userAddress, POOL_ADDRESS);
         if (allowance < amountIn) {
             showStatus(swapStatus, 'Approving token transfer transfer...', 'pending');
