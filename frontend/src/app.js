@@ -607,7 +607,7 @@ removeLpBtn.addEventListener('click', removeLiquidity);
 console.log('MiniDex Frontend v1.0 Loaded');
 console.log("Welcome to MiniDex - Your Stablecoin Swap Platform");
 console.log("Welcome to MiniDex - Your Stablecoin Swap Platform");
-console.log('Smart Contract Pool Address:', POOL_ADDRESS);
+console.log('Smart Contract Smart Contract Pool Address:', POOL_ADDRESS);
 console.log('USDC Token Address:', USDC_ADDRESS);
 console.log('USDT Token Address:', USDT_ADDRESS);
 
