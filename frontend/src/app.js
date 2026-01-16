@@ -620,3 +620,4 @@ console.log("MiniDex initialization complete - Ready for trading");
 console.log("MiniDex initialization complete - Ready for trading");
 // Last updated: 2026-01-16T23:03:28+01:00
 // Debug utilities module
+// Debug utilities module
