@@ -151,6 +151,7 @@ async function connectWallet() {
 
         // Check network
         console.log("Checking network configuration...");
+        console.log("Checking network configuration...");
         const chainId = await window.ethereum.request({ method: 'eth_chainId' });
         if (parseInt(chainId, 16) !== BASE_CHAIN_ID) {
             // Try to switch to Base
