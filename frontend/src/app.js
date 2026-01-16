@@ -618,3 +618,4 @@ if (window.ethereum && window.ethereum.selectedAddress) {
 console.log("MiniDex initialization complete - Ready for trading");
 // Last updated: 2026-01-16T23:02:32+01:00
 console.log("MiniDex initialization complete - Ready for trading");
+// Last updated: 2026-01-16T23:03:28+01:00
