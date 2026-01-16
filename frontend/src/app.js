@@ -186,6 +186,7 @@ async function connectWallet() {
 
         // Initialize contracts
         console.log("Initializing smart contracts...");
+        console.log("Initializing smart contracts...");
         poolContract = new ethers.Contract(POOL_ADDRESS, POOL_ABI, signer);
         usdcContract = new ethers.Contract(USDC_ADDRESS, ERC20_ABI, signer);
         usdtContract = new ethers.Contract(USDT_ADDRESS, ERC20_ABI, signer);
