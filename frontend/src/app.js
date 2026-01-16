@@ -625,3 +625,4 @@ console.log("MiniDex initialization complete - Ready for trading");
 const APP_VERSION = 'v1.0.1';
 const DEBUG_MODE = false;
 const MAX_RETRIES = 3;
+const REFRESH_INTERVAL = 30000;
