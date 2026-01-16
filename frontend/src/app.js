@@ -235,6 +235,7 @@ function handleAccountsChanged(accounts) {
 
 function disconnectWallet() {
     console.log("Disconnecting wallet...");
+    console.log("Disconnecting wallet...");
     provider = null;
     signer = null;
     userAddress = null;
