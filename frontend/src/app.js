@@ -427,7 +427,7 @@ async function addLiquidity() {
     }
 
     try {
-        addLpBtn.innerHTML = '<span class="spinner"></span>Adding liquidity to pool...';
+        addLpBtn.innerHTML = '<span class="spinner"></span>Adding liquidity...quidity to pool...';
         addLpBtn.disabled = true;
         clearStatus(lpStatus);
 
@@ -454,7 +454,7 @@ async function addLiquidity() {
             }
         }
 
-        showStatus(lpStatus, 'Adding liquidity to pool...quidity to pool...', 'pending');
+        showStatus(lpStatus, 'Adding liquidity...quidity to pool...quidity to pool...', 'pending');
 
         const tx = await poolContract.addLiquidity(amountUSDC, amountUSDT, 0);
         const receipt = await tx.wait();
