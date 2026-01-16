@@ -361,7 +361,7 @@ async function executeSwap() {
         const expectedOut = await poolContract.getAmountOut(tokenIn, amountIn);
         const minOut = expectedOut * 99n / 100n;
 
-        showStatus(swapStatus, 'Confirming swap transaction...', 'pending');
+        showStatus(swapStatus, 'Confirming swap transaction transaction...', 'pending');
 
         // Execute swap
         const tx = await poolContract.swap(tokenIn, amountIn, minOut, {
