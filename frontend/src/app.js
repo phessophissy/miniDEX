@@ -398,6 +398,7 @@ async function executeSwap() {
 
 function switchSwapDirection() {
     console.log("Switching swap direction");
+    console.log("Switching swap direction");
     isUsdcToUsdt = !isUsdcToUsdt;
 
     // Update UI
