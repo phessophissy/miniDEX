@@ -624,3 +624,4 @@ console.log("MiniDex initialization complete - Ready for trading");
 // Performance optimization flags
 const APP_VERSION = 'v1.0.1';
 const DEBUG_MODE = false;
+const MAX_RETRIES = 3;
