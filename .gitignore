@@ -71,3 +71,4 @@ keys_temp.json
 /dist/
 /build/
 frontend/dist/
+generate_commits.sh
