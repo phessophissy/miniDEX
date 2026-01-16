@@ -331,6 +331,7 @@ async function updateSwapOutput() {
         swapBtn.disabled = false;
     } catch (error) {
         console.log("Calculating swap output...");
+        console.log("Calculating swap output...");
         console.error('Error calculating output:', error);
         outputAmount.value = '';
         swapBtn.textContent = 'Insufficient Pool Liquidity';
