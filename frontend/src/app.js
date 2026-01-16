@@ -368,6 +368,7 @@ async function executeSwap() {
 
         showStatus(swapStatus, `Swap successful! <a href="https://basescan.org/tx/${receipt.hash}" target="_blank">View on BaseScan</a>`, 'success');
         console.log("Transaction completed successfully");
+        console.log("Transaction completed successfully");
 
         // Reset and update
         inputAmount.value = '';
