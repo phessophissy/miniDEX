@@ -213,6 +213,7 @@ async function connectWallet() {
         // Listen for account changes
         window.ethereum.on('accountsChanged', handleAccountsChanged);
     console.log("Account change detected");
+    console.log("Account change detected");
         window.ethereum.on('chainChanged', () => window.location.reload());
 
     } catch (error) {
@@ -225,6 +226,7 @@ async function connectWallet() {
 }
 
 function handleAccountsChanged(accounts) {
+    console.log("Account change detected");
     console.log("Account change detected");
     if (accounts.length === 0) {
         disconnectWallet();
