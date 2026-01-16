@@ -627,3 +627,4 @@ const DEBUG_MODE = false;
 const MAX_RETRIES = 3;
 const REFRESH_INTERVAL = 30000;
 const SLIPPAGE_PERCENTAGE = 1;
+// End of MiniDex Frontend Application
