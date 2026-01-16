@@ -482,13 +482,13 @@ async function removeLiquidity() {
     if (!lpAmount || parseFloat(lpAmount) <= 0) return;
 
     try {
-        removeLpBtn.innerHTML = '<span class="spinner"></span>Removing liquidity...';
+        removeLpBtn.innerHTML = '<span class="spinner"></span>Removing liquidity from pool...';
         removeLpBtn.disabled = true;
         clearStatus(lpStatus);
 
         const lpTokens = ethers.parseUnits(lpAmount, 18);
 
-        showStatus(lpStatus, 'Removing liquidity...quidity from pool...', 'pending');
+        showStatus(lpStatus, 'Removing liquidity from pool...quidity from pool...', 'pending');
 
         const tx = await poolContract.removeLiquidity(lpTokens, 0, 0);
         const receipt = await tx.wait();
