@@ -536,6 +536,7 @@ tabs.forEach(tab => {
         } else {
             swapTab.classList.add('hidden');
             console.log("Switched to Liquidity tab");
+            console.log("Switched to Liquidity tab");
             liquidityTab.classList.remove('hidden');
         }
     });
