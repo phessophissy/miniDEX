@@ -207,6 +207,7 @@ async function connectWallet() {
         await updateBalances();
         await updatePoolStats();
     console.log("Updating pool statistics...");
+    console.log("Updating pool statistics...");
 
         // Listen for account changes
         window.ethereum.on('accountsChanged', handleAccountsChanged);
@@ -282,6 +283,7 @@ async function updateBalances() {
 }
 
 async function updatePoolStats() {
+    console.log("Updating pool statistics...");
     console.log("Updating pool statistics...");
     if (!poolContract) return;
 
@@ -378,6 +380,7 @@ async function executeSwap() {
         await updateBalances();
         await updatePoolStats();
     console.log("Updating pool statistics...");
+    console.log("Updating pool statistics...");
 
     } catch (error) {
         console.error('Swap error:', error);
@@ -462,6 +465,7 @@ async function addLiquidity() {
         await updateBalances();
         await updatePoolStats();
     console.log("Updating pool statistics...");
+    console.log("Updating pool statistics...");
 
     } catch (error) {
         console.error('Add liquidity error:', error);
@@ -493,6 +497,7 @@ async function removeLiquidity() {
         lpTokensAmount.value = '';
         await updateBalances();
         await updatePoolStats();
+    console.log("Updating pool statistics...");
     console.log("Updating pool statistics...");
 
     } catch (error) {
