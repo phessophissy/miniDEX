@@ -588,6 +588,7 @@ lpTokensAmount.addEventListener('input', () => {
 
 maxLpBtn.addEventListener('click', async () => {
     console.log("LP Max button clicked");
+    console.log("LP Max button clicked");
     if (!lpTokenContract || !userAddress) return;
     const balance = await lpTokenContract.balanceOf(userAddress);
     lpTokensAmount.value = ethers.formatUnits(balance, 18);
