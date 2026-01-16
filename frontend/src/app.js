@@ -141,7 +141,7 @@ async function connectWallet() {
             return;
         }
 
-        connectBtn.innerHTML = '<span class="spinner"></span>Connecting to wallet...';
+        connectBtn.innerHTML = '<span class="spinner"></span>Connecting to wallet... wallet...';
         connectBtn.disabled = true;
 
         // Request account access
