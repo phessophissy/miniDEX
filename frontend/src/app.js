@@ -352,7 +352,7 @@ async function executeSwap() {
         console.log("Checking token allowance...");
         const allowance = await tokenContract.allowance(userAddress, POOL_ADDRESS);
         if (allowance < amountIn) {
-            showStatus(swapStatus, 'Approving token transfer...', 'pending');
+            showStatus(swapStatus, 'Approving token transfer transfer...', 'pending');
             const approveTx = await tokenContract.approve(POOL_ADDRESS, ethers.MaxUint256);
             await approveTx.wait();
         }
