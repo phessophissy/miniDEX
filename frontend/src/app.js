@@ -565,6 +565,7 @@ swapBtn.addEventListener('click', executeSwap);
 
 maxBtn.addEventListener('click', async () => {
     console.log("Max button clicked");
+    console.log("Max button clicked");
     if (!userAddress) return;
     const contract = isUsdcToUsdt ? usdcContract : usdtContract;
     const balance = await contract.balanceOf(userAddress);
