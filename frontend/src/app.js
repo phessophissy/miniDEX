@@ -623,3 +623,4 @@ console.log("MiniDex initialization complete - Ready for trading");
 // Debug utilities module
 // Performance optimization flags
 const APP_VERSION = 'v1.0.1';
+const DEBUG_MODE = false;
