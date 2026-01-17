@@ -60,6 +60,18 @@ contract StablePool is IStablePool {
     /// @notice Current USDT reserve (in native decimals)
     uint256 public reserveUSDT;
 
+    /// @notice Total swap volume in USDC
+    uint256 public totalUSDCVolume;
+
+    /// @notice Total swap volume in USDT
+    uint256 public totalUSDTVolume;
+
+    /// @notice Total number of swaps executed
+    uint256 public totalSwapsCount;
+
+    /// @notice Total number of LP providers
+    uint256 public totalLPs;
+
     /*//////////////////////////////////////////////////////////////
                               CONSTRUCTOR
     //////////////////////////////////////////////////////////////*/
@@ -218,6 +230,14 @@ contract StablePool is IStablePool {
         (bool success, ) = feeRecipient.call{value: SWAP_FEE}("");
         require(success, "StablePool: fee transfer failed");
 
+        // Update analytics
+        totalSwapsCount++;
+        if (isUsdcIn) {
+            totalUSDCVolume += amountIn;
+        } else {
+            totalUSDTVolume += amountIn;
+        }
+
         emit Swap(
             msg.sender,
             tokenIn,
@@ -348,8 +368,290 @@ contract StablePool is IStablePool {
                               RECEIVE ETH
     //////////////////////////////////////////////////////////////*/
 
+    /*//////////////////////////////////////////////////////////////
+                           BULK OPERATIONS
+    //////////////////////////////////////////////////////////////*/
+
+    /// @notice Struct for bulk swap parameters
+    struct BulkSwap {
+        address tokenIn;
+        uint256 amountIn;
+        uint256 minAmountOut;
+    }
+
+    /// @notice Struct for bulk liquidity addition parameters
+    struct BulkLiquidityAddition {
+        uint256 amountUSDC;
+        uint256 amountUSDT;
+        uint256 minLpTokens;
+    }
+
+    /// @notice Struct for bulk liquidity removal parameters
+    struct BulkLiquidityRemoval {
+        uint256 lpTokens;
+        uint256 minUSDC;
+        uint256 minUSDT;
+    }
+
+    /// @notice Event emitted when bulk swaps are executed
+    event BulkSwapsExecuted(
+        address indexed caller,
+        uint256 totalSwaps,
+        uint256 totalValueTransferred
+    );
+
+    /// @notice Event emitted when bulk liquidity is added
+    event BulkLiquidityAdded(
+        address indexed provider,
+        uint256 totalAdditions,
+        uint256 totalLpTokens
+    );
+
+    /// @notice Event emitted when bulk liquidity is removed
+    event BulkLiquidityRemoved(
+        address indexed provider,
+        uint256 totalRemovals,
+        uint256 totalLpBurned,
+        uint256 totalUSDC,
+        uint256 totalUSDT
+    );
+
+    /// @notice Execute multiple swaps in a single transaction
+    /// @param swaps Array of swap parameters (up to 10 swaps per transaction)
+    /// @return totalAmountOut Total output amount across all swaps
+    function bulkSwap(BulkSwap[] calldata swaps)
+        external
+        payable
+        returns (uint256 totalAmountOut)
+    {
+        uint256 totalSwaps = swaps.length;
+        require(totalSwaps > 0 && totalSwaps <= 10, "StablePool: invalid swap count");
+
+        uint256 totalFeesRequired = totalSwaps * SWAP_FEE;
+        require(msg.value == totalFeesRequired, "StablePool: incorrect total fee");
+
+        uint256 totalValueTransferred = 0;
+
+        for (uint256 i = 0; i < totalSwaps; i++) {
+            BulkSwap calldata swapData = swaps[i];
+            require(swapData.amountIn > 0, "StablePool: zero amount");
+
+            // Validate token and determine direction
+            bool isUsdcIn = swapData.tokenIn == address(usdc);
+            require(isUsdcIn || swapData.tokenIn == address(usdt), "StablePool: invalid token");
+
+            // Calculate output using stable-swap math
+            uint256 amountOut = _calculateSwapOutput(swapData.amountIn, isUsdcIn);
+            require(amountOut >= swapData.minAmountOut, "StablePool: slippage");
+
+            // Check sufficient output reserves
+            if (isUsdcIn) {
+                require(amountOut <= reserveUSDT, "StablePool: insufficient USDT");
+            } else {
+                require(amountOut <= reserveUSDC, "StablePool: insufficient USDC");
+            }
+
+            // Transfer input token in
+            IERC20 inputToken = isUsdcIn ? usdc : usdt;
+            _safeTransferFrom(inputToken, msg.sender, address(this), swapData.amountIn);
+
+            // Update reserves
+            if (isUsdcIn) {
+                reserveUSDC += swapData.amountIn;
+                reserveUSDT -= amountOut;
+            } else {
+                reserveUSDT += swapData.amountIn;
+                reserveUSDC -= amountOut;
+            }
+
+            // Transfer output token out
+            IERC20 outputToken = isUsdcIn ? usdt : usdc;
+            _safeTransfer(outputToken, msg.sender, amountOut);
+
+            // Accumulate totals
+            totalAmountOut += amountOut;
+            totalValueTransferred += swapData.amountIn;
+        }
+
+        // Send total fees to recipient
+        (bool success, ) = feeRecipient.call{value: totalFeesRequired}("");
+        require(success, "StablePool: fee transfer failed");
+
+        emit BulkSwapsExecuted(msg.sender, totalSwaps, totalValueTransferred);
+
+        return totalAmountOut;
+    }
+
+    /// @notice Execute bulk liquidity additions
+    /// @param additions Array of liquidity addition parameters (up to 5 additions)
+    /// @return totalLpTokens Total LP tokens minted across all additions
+    function bulkAddLiquidity(BulkLiquidityAddition[] calldata additions)
+        external
+        returns (uint256 totalLpTokens)
+    {
+        uint256 totalAdditions = additions.length;
+        require(totalAdditions > 0 && totalAdditions <= 5, "StablePool: invalid addition count");
+
+        for (uint256 i = 0; i < totalAdditions; i++) {
+            BulkLiquidityAddition calldata addition = additions[i];
+            require(addition.amountUSDC > 0 || addition.amountUSDT > 0, "StablePool: zero amounts");
+
+            uint256 totalSupply = lpToken.totalSupply();
+            uint256 lpTokensMinted;
+
+            if (totalSupply == 0) {
+                // First deposit: LP tokens = sum of normalized amounts
+                lpTokensMinted = (addition.amountUSDC * usdcMultiplier) + (addition.amountUSDT * usdtMultiplier);
+                require(lpTokensMinted > 0, "StablePool: insufficient initial liquidity");
+            } else {
+                // Subsequent deposits: proportional to existing liquidity
+                uint256 totalReserves = (reserveUSDC * usdcMultiplier) + (reserveUSDT * usdtMultiplier);
+                uint256 depositValue = (addition.amountUSDC * usdcMultiplier) + (addition.amountUSDT * usdtMultiplier);
+                lpTokensMinted = (depositValue * totalSupply) / totalReserves;
+            }
+
+            require(lpTokensMinted >= addition.minLpTokens, "StablePool: slippage");
+
+            // Transfer tokens in
+            if (addition.amountUSDC > 0) {
+                _safeTransferFrom(usdc, msg.sender, address(this), addition.amountUSDC);
+                reserveUSDC += addition.amountUSDC;
+            }
+            if (addition.amountUSDT > 0) {
+                _safeTransferFrom(usdt, msg.sender, address(this), addition.amountUSDT);
+                reserveUSDT += addition.amountUSDT;
+            }
+
+            // Mint LP tokens
+            lpToken.mint(msg.sender, lpTokensMinted);
+
+            totalLpTokens += lpTokensMinted;
+        }
+
+        emit BulkLiquidityAdded(msg.sender, totalAdditions, totalLpTokens);
+    }
+
+    /// @notice Execute bulk liquidity removals
+    /// @param removals Array of liquidity removal parameters (up to 5 removals)
+    /// @return totalUSDC Total USDC withdrawn across all removals
+    /// @return totalUSDT Total USDT withdrawn across all removals
+    function bulkRemoveLiquidity(BulkLiquidityRemoval[] calldata removals)
+        external
+        returns (uint256 totalUSDC, uint256 totalUSDT)
+    {
+        uint256 totalRemovals = removals.length;
+        require(totalRemovals > 0 && totalRemovals <= 5, "StablePool: invalid removal count");
+
+        uint256 totalLpBurned = 0;
+
+        for (uint256 i = 0; i < totalRemovals; i++) {
+            BulkLiquidityRemoval calldata removal = removals[i];
+            require(removal.lpTokens > 0, "StablePool: zero LP tokens");
+
+            uint256 totalSupply = lpToken.totalSupply();
+            require(totalSupply > 0, "StablePool: no liquidity");
+
+            // Calculate proportional amounts
+            uint256 amountUSDC = (removal.lpTokens * reserveUSDC) / totalSupply;
+            uint256 amountUSDT = (removal.lpTokens * reserveUSDT) / totalSupply;
+
+            require(amountUSDC >= removal.minUSDC, "StablePool: USDC slippage");
+            require(amountUSDT >= removal.minUSDT, "StablePool: USDT slippage");
+
+            // Burn LP tokens first (checks balance)
+            lpToken.burn(msg.sender, removal.lpTokens);
+
+            // Update reserves
+            reserveUSDC -= amountUSDC;
+            reserveUSDT -= amountUSDT;
+
+            // Transfer tokens out
+            if (amountUSDC > 0) {
+                _safeTransfer(usdc, msg.sender, amountUSDC);
+            }
+            if (amountUSDT > 0) {
+                _safeTransfer(usdt, msg.sender, amountUSDT);
+            }
+
+            // Accumulate totals
+            totalUSDC += amountUSDC;
+            totalUSDT += amountUSDT;
+            totalLpBurned += removal.lpTokens;
+        }
+
+        emit BulkLiquidityRemoved(msg.sender, totalRemovals, totalLpBurned, totalUSDC, totalUSDT);
+    }
+
+    /// @notice Get bulk operation limits
+    /// @return maxBulkSwaps Maximum swaps per bulk transaction
+    /// @return maxBulkLiquidity Maximum liquidity operations per bulk transaction
+    function getBulkLimits()
+        external
+        pure
+        returns (uint256 maxBulkSwaps, uint256 maxBulkLiquidity)
+    {
+        return (10, 5);
+    }
+
+    /// @notice Estimate gas for bulk operations
+    /// @param operationCount Number of operations
+    /// @param isSwap True if estimating swaps, false for liquidity operations
+    /// @return estimatedGas Approximate gas cost
+    function estimateBulkGas(uint256 operationCount, bool isSwap)
+        external
+        pure
+        returns (uint256 estimatedGas)
+    {
+        require(operationCount > 0, "StablePool: invalid count");
+
+        uint256 baseGas = 21000; // Base transaction gas
+        uint256 perOperationGas;
+
+        if (isSwap) {
+            // Swap operations
+            perOperationGas = operationCount <= 10 ? 85000 : 100000;
+            require(operationCount <= 10, "StablePool: too many swaps");
+        } else {
+            // Liquidity operations
+            perOperationGas = 130000;
+            require(operationCount <= 5, "StablePool: too many operations");
+        }
+
+        return baseGas + (perOperationGas * operationCount);
+    }
+
     /// @notice Reject direct ETH transfers (fees must go through swap)
     receive() external payable {
         revert("StablePool: use swap()");
+    }
+
+    /// @notice Get comprehensive pool analytics
+    /// @return reserveUSDC_ Current USDC reserve
+    /// @return reserveUSDT_ Current USDT reserve
+    /// @return totalUSDCVolume_ Total USDC volume swapped
+    /// @return totalUSDTVolume_ Total USDT volume swapped
+    /// @return totalSwaps_ Total number of swaps
+    /// @return totalLPs_ Total number of LP providers
+    /// @return tvl Total value locked in USD (assuming 1:1 peg)
+    function getPoolAnalytics()
+        external
+        view
+        returns (
+            uint256 reserveUSDC_,
+            uint256 reserveUSDT_,
+            uint256 totalUSDCVolume_,
+            uint256 totalUSDTVolume_,
+            uint256 totalSwaps_,
+            uint256 totalLPs_,
+            uint256 tvl
+        )
+    {
+        reserveUSDC_ = reserveUSDC;
+        reserveUSDT_ = reserveUSDT;
+        totalUSDCVolume_ = totalUSDCVolume;
+        totalUSDTVolume_ = totalUSDTVolume;
+        totalSwaps_ = totalSwapsCount;
+        totalLPs_ = totalLPs;
+        tvl = reserveUSDC + reserveUSDT; // Assuming 1:1 peg
     }
 }
