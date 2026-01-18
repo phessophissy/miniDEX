@@ -180,6 +180,60 @@ miniDex/
 └── README.md               # This file
 ```
 
+## 🤝 Contributing
+
+We welcome contributions to the MiniDEX project! Here's how you can help:
+
+### Ways to Contribute
+- **Smart Contract Improvements**: Optimize gas efficiency, add new features, enhance security
+- **Frontend Development**: Improve the UI/UX, add new features, optimize performance
+- **AMM Research**: Research and implement better stable-swap curves or liquidity mechanisms
+- **Testing**: Add comprehensive test coverage for contracts and frontend
+- **Documentation**: Improve README, add tutorials, create developer guides
+- **Integration**: Add support for more tokens or integrate with other protocols
+
+### Development Workflow
+1. Fork the repository
+2. Create a feature branch: `git checkout -b feature/your-feature-name`
+3. Make your changes and ensure tests pass
+4. Run the test suite: `forge test && cd frontend && npm test`
+5. Submit a pull request with a clear description
+
+### Code Standards
+- Follow existing code patterns and Solidity best practices
+- Add tests for new functionality
+- Update documentation for significant changes
+- Ensure backward compatibility where possible
+- Use descriptive commit messages
+
+### Smart Contract Guidelines
+- Use OpenZeppelin contracts for security
+- Add comprehensive test coverage with Foundry
+- Optimize for gas efficiency
+- Include proper error handling and revert messages
+- Document complex mathematical operations
+
+### Frontend Guidelines
+- Use TypeScript for type safety
+- Follow React best practices
+- Ensure mobile responsiveness
+- Test on multiple wallet connections
+- Handle error states gracefully
+
+### Testing
+- All smart contract functions should have unit tests
+- Frontend should have integration tests
+- Test on both testnet and mainnet
+- Include edge cases and failure scenarios
+
+### Security Considerations
+- Never modify the AMM math without thorough testing
+- Be cautious with external contract calls
+- Validate all user inputs
+- Consider economic incentives when making changes
+
+---
+
 ## License
 
 MIT License

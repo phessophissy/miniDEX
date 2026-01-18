@@ -8,7 +8,7 @@
     "frontend:build": "cd frontend && npm run build"
   },
   "keywords": ["dex", "stablecoin", "base", "ethereum", "amm"],
-  "author": "",
+  "author": "Adekunle Bamz",
   "license": "MIT",
   "type": "commonjs",
   "dependencies": {
